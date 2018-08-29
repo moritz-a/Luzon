@@ -21,34 +21,34 @@ App = {
   },
 
   initContract: function() {
-    $.getJSON('TutorialToken.json', function(data) {
+    $.getJSON('ProviderFactory.json', function(data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract.
-      var TutorialTokenArtifact = data;
-      App.contracts.TutorialToken = TruffleContract(TutorialTokenArtifact);
+      var ProviderFactoryArtifact = data;
+      App.contracts.ProviderFactory = TruffleContract(ProviderFactoryArtifact);
 
       // Set the provider for our contract.
-      App.contracts.TutorialToken.setProvider(App.web3Provider);
+      App.contracts.ProviderFactory.setProvider(App.web3Provider);
 
       // Use our contract to retieve and mark the adopted pets.
-      return App.getBalances();
+      return App.getProviders();
     });
 
     return App.bindEvents();
   },
 
   bindEvents: function() {
-    $(document).on('click', '#transferButton', App.handleTransfer);
+    $(document).on('click', '#createButton', App.createProvider);
   },
 
-  handleTransfer: function(event) {
+  createProvider: function(event) {
     event.preventDefault();
 
-    var amount = parseInt($('#TTTransferAmount').val());
-    var toAddress = $('#TTTransferAddress').val();
+    var providerName = $('#ProviderName').val();
+    var providerSymbol = $('#ProviderSymbol').val();
 
-    console.log('Transfer ' + amount + ' TT to ' + toAddress);
+    console.log('Create Provider: ' + providerName + ' with symbol: ' + providerSymbol);
 
-    var tutorialTokenInstance;
+    var providerFactoryInstance;
 
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
@@ -57,21 +57,21 @@ App = {
 
       var account = accounts[0];
 
-      App.contracts.TutorialToken.deployed().then(function(instance) {
-        tutorialTokenInstance = instance;
+      App.contracts.ProviderFactory.deployed().then(function(instance) {
+        providerFactoryInstance = instance;
 
-        return tutorialTokenInstance.transfer(toAddress, amount, {from: account, gas: 100000});
+        return providerFactoryInstance.createProvider(providerName, providerSymbol);
       }).then(function(result) {
-        alert('Transfer Successful!');
-        return App.getBalances();
+        alert('Creation Successful!');
+        return App.getProviders();
       }).catch(function(err) {
         console.log(err.message);
       });
     });
   },
 
-  getBalances: function() {
-    console.log('Getting balances...');
+  getProviders: function() {
+    console.log('Getting providers...');
 
     var tutorialTokenInstance;
 
@@ -81,15 +81,43 @@ App = {
       }
 
       var account = accounts[0];
+      var addr;
 
-      App.contracts.TutorialToken.deployed().then(function(instance) {
-        tutorialTokenInstance = instance;
+      App.contracts.ProviderFactory.deployed().then(function(instance) {
+        providerFactoryInstance = instance;
 
-        return tutorialTokenInstance.balanceOf(account);
+        return providerFactoryInstance.getProviders();
       }).then(function(result) {
-        balance = result.c[0];
 
-        $('#TTBalance').text(balance);
+        var providerList = $('#providerList');
+        var providerTemplate = $('#providerTemplate');
+
+        (async function loop() {
+        for (i = 0; i < result.length; i++) {
+
+          addr = result[i];
+
+
+          await providerFactoryInstance.getName(addr).then(function(provName) {
+            console.log("addr: " + addr);
+            providerTemplate.find('.address').text(addr);
+
+            console.log(" name: " + provName);
+            providerTemplate.find('.panel-title').text(provName);
+
+
+            providerList.append(providerTemplate.html());
+
+          });
+} })();
+
+
+  
+
+
+               
+
+        //$('#TTBalance').text(balance);
       }).catch(function(err) {
         console.log(err.message);
       });

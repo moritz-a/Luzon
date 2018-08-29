@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
+import "openzeppelin-solidity/contracts/ownership/Heritable.sol";
 
 //credit https://github.com/Robin-C/CV/blob/master/src/ethereum/contract/company.sol
 
@@ -8,21 +9,21 @@ import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
 //implement timelock?? TokenTimelock.sol
 // https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/TokenTimelock.sol
 
-contract CompanyFactory {
+contract ProviderFactory {
 
-    address[] public companyList;
+    address[] public providerList;
     uint public counter = 0;
     mapping(address => string) names;
 
-    function createCompany(string _name, string _symbol) public {
+    function createProvider(string _name, string _symbol) public {
         counter = counter + 1;
-        address newCompanyAddress = new Company(msg.sender, _name, _symbol, counter);
-        companyList.push(newCompanyAddress);
-        names[newCompanyAddress] = _name;
+        address providerAddress = new AssetProvider(msg.sender, _name, _symbol, counter);
+        providerList.push(providerAddress);
+        names[providerAddress] = _name;
     }
 
-    function getCompanies() public view returns (address[]) {
-        return companyList;
+    function getProviders() public view returns (address[]) {
+        return providerList;
     }
 
     function getName(address _addr) public view returns (string) {
@@ -84,6 +85,14 @@ contract AssetProvider {
         licenseAssets[licenseAssetCounter].cost = cost;
     }
 
+    function getLicenseAsset(uint _id) public returns (string _name, uint8 _cost) {
+        return (licenseAssets[_id].name, licenseAssets[_id].cost);
+    }
+
+    /*function getLicenseAssets() public view returns (uint[]) {
+        return licenseAssets;
+    }*/
+
     /*functions getTokens(uint amount) public payable {
 
     }*/
@@ -99,9 +108,36 @@ contract AssetConsumer {
         userCounter = 0;
     }
 
-    function addCompanion(address _user) public {
+    function addUser(address _user) public {
         require(msg.sender == owner, "Only the owner may add user");
-
+        userCounter++;
+        users[userCounter] = new User(100);
     }
 }
 
+contract User is Heritable {
+
+  event Sent(address indexed payee, uint256 amount, uint256 balance);
+  event Received(address indexed payer, uint256 amount, uint256 balance);
+
+
+  constructor(uint256 _heartbeatTimeout) Heritable(_heartbeatTimeout) public {}
+
+  /**
+   * @dev wallet can receive funds.
+   */
+  function () external payable {
+    emit Received(msg.sender, msg.value, address(this).balance);
+  }
+
+  /**
+   * @dev wallet can send funds
+   */
+  function sendTo(address _payee, uint256 _amount) public onlyOwner {
+    require(_payee != address(0) && _payee != address(this));
+    require(_amount > 0);
+    _payee.transfer(_amount);
+    emit Sent(_payee, _amount, address(this).balance);
+}
+
+}

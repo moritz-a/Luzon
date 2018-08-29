@@ -21,12 +21,53 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-12 col-sm-8 col-sm-push-2">
-          <h1 class="text-center">TutorialToken</h1>
+          <h1 class="text-center">ProviderFactory</h1>
           <hr/>
           <br/>
         </div>
       </div>
+      <div id="Creator" class="row">
+        <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Create Provider</h3>
+            </div>
+            <div class="panel-body">
+              <h4>Provider Name</h4>
+              <h4>Transfer</h4>
+              <input type="text" class="form-control" id="ProviderName" placeholder="Name" />
+              <input type="text" class="form-control" id="ProviderSymbol" placeholder="Symbol" />
+              <button class="btn btn-primary" id="createButton" type="button">Create</button>
+            </div>
+          </div>
+        </div>
 
+        <div id="Deployed Provider" class="row">
+          <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">Deployed Provider</h3>
+              </div>
+              <div class="panel-body" id="providerList">
+
+              </div>
+            </div>
+          </div>
+
+          <div id="providerTemplate" style="display: none;">
+            <div class="col-sm-6 col-md-4 col-lg-3">
+              <div class="panel panel-default panel-pet">
+                <div class="panel-heading">
+                  <h3 class="panel-title">Provider</h3>
+                </div>
+                <div class="panel-body">
+                  <strong>Symbol</strong>: <span class="symbol">MM</span><br/>
+                  <strong>Address</strong>: <span class="address">0x0</span><br/>
+                </div>
+              </div>
+            </div>
+          </div>          
+<!---
       <div id="petsRow" class="row">
         <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
           <div class="panel panel-default">
@@ -43,6 +84,8 @@
             </div>
           </div>
         </div>
+      -->
+
       </div>
     </div>
 

@@ -1,5 +1,5 @@
-var CompanyFactory = artifacts.require("CompanyFactory");
+var ProviderFactory = artifacts.require("ProviderFactory");
 
 module.exports = function(deployer) {
-  deployer.deploy(CompanyFactory);
+  deployer.deploy(ProviderFactory);
 };

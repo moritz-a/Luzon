@@ -72,9 +72,6 @@ App = {
 
   getProviders: function() {
     console.log('Getting providers...');
-
-    var tutorialTokenInstance;
-
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
@@ -82,6 +79,7 @@ App = {
 
       var account = accounts[0];
       var addr;
+      var providerFactoryInstance;
 
       App.contracts.ProviderFactory.deployed().then(function(instance) {
         providerFactoryInstance = instance;
@@ -92,37 +90,68 @@ App = {
         var providerList = $('#providerList');
         var providerTemplate = $('#providerTemplate');
 
+        //reset list
+        providerList.html("");
+
         (async function loop() {
-        for (i = 0; i < result.length; i++) {
+          for (i = 0; i < result.length; i++) {
+            addr = result[i];
+            await providerFactoryInstance.getName(addr).then(function(provName) {
+              providerTemplate.find('.address').text(addr);
+              providerTemplate.find('.panel-title').text(provName);
+              providerTemplate.find('.asset-details').attr("id","asset-" + addr);
+              providerTemplate.find('.btn-listAssets').attr("onclick", "getLicenseAssets(" + addr + ")")
+              providerList.append(providerTemplate.html());
 
-          addr = result[i];
-
-
-          await providerFactoryInstance.getName(addr).then(function(provName) {
-            console.log("addr: " + addr);
-            providerTemplate.find('.address').text(addr);
-
-            console.log(" name: " + provName);
-            providerTemplate.find('.panel-title').text(provName);
-
-
-            providerList.append(providerTemplate.html());
-
-          });
-} })();
-
-
-  
-
-
-               
-
-        //$('#TTBalance').text(balance);
-      }).catch(function(err) {
+            });
+          }
+        })();
+    }).catch(function(err) {
         console.log(err.message);
       });
     });
-  }
+  },
+
+  getLicenseAssets: function(addr) {
+    console.log('Getting LicenseAssets for LicenseProvider ' + addr);
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+      var licenseProviderInstance;
+
+      App.contracts.LicenseProvider.at(addr).then(function(instance) {
+        licenseProviderInstance = instance;
+
+        return licenseProviderInstance.getLicenseAssets();
+      }).then(function(result) {
+
+        var licenseAssetList = $('#asset-' + addr);
+        var licenseAssetTemplate = $('#licenseAssetTemplate');
+
+        //reset list
+        licenseAssetList.html("");
+
+        (async function loop() {
+          for (i = 0; i < result.length; i++) {
+            addr = result[i];
+            await licenseProviderInstance.getLicenseAsset(addr).then(function(res) {
+              
+              licenseAssetTemplate.find('.laID').text(res[0]);
+              licenseAssetTemplate.find('.laName').text(res[1]);
+              licenseAssetTemplate.find('.laCost').text(res[2]);
+              licenseAssetList.append(licenseAssetTemplate.html());
+
+            });
+          }
+        })();
+    }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  }  
 
 };
 

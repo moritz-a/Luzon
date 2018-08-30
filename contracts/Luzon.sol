@@ -57,8 +57,10 @@ contract AssetProvider {
     uint public licenseAssetCounter;
     address public tokenAddress;
 
-    mapping (uint => LicenseAsset) licenseAssets;
-    
+    //mapping (address => LicenseAsset) licenseAssets;
+    address[] public licenseAssetsLUT;
+
+
     struct LicenseAsset {
         uint ID;
         string name;
@@ -80,18 +82,22 @@ contract AssetProvider {
     function addLicenseAsset(string swname, uint8 cost) public {
         require(msg.sender == owner, "Only the provider owner can add license assets");
         licenseAssetCounter++;
-        licenseAssets[licenseAssetCounter].ID = licenseAssetCounter;
-        licenseAssets[licenseAssetCounter].name = swname;
-        licenseAssets[licenseAssetCounter].cost = cost;
+        LicenseAsset memory laAddress;
+        laAddress.ID = licenseAssetCounter;
+        laAddress.name = swname;
+        laAddress.cost = cost;
+
+        //licenseAssets[licenseAssetCounter] = laAddress;
+        licenseAssetsLUT.push(laAddress);
     }
 
-    function getLicenseAsset(uint _id) public returns (string _name, uint8 _cost) {
-        return (licenseAssets[_id].name, licenseAssets[_id].cost);
+    function getLicenseAsset(address _addr) public returns (string _name, uint8 _cost) {
+        return (licenseAssetsLUT[_addr].name, licenseAssetsLUT[_addr].cost);
     }
 
-    /*function getLicenseAssets() public view returns (uint[]) {
-        return licenseAssets;
-    }*/
+    function getLicenseAssets() public view returns (address[]) {
+        return licenseAssetsLUT;
+    }
 
     /*functions getTokens(uint amount) public payable {
 

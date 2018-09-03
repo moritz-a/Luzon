@@ -3,7 +3,7 @@ App = {
   contracts: {},
 
   init: function() {
-    return App.initWeb3();
+   return App.initWeb3();
   },
 
   initWeb3: function() {
@@ -29,15 +29,24 @@ App = {
       // Set the provider for our contract.
       App.contracts.ProviderFactory.setProvider(App.web3Provider);
 
-      // Use our contract to retieve and mark the adopted pets.
       return App.getProviders();
     });
+
+    $.getJSON('AssetProvider.json', function(data) {
+      // Get the necessary contract artifact file and instantiate it with truffle-contract.
+      var AssetProviderArtifact = data;
+      App.contracts.AssetProvider = TruffleContract(AssetProviderArtifact);
+
+      // Set the provider for our contract.
+      App.contracts.AssetProvider.setProvider(App.web3Provider);
+    });    
 
     return App.bindEvents();
   },
 
   bindEvents: function() {
-    $(document).on('click', '#createButton', App.createProvider);
+    $(document).on('click', '#createProviderButton', App.createProvider);
+    //$(document).on('click', '#createAssetButton', App.createAsset);
   },
 
   createProvider: function(event) {
@@ -72,6 +81,10 @@ App = {
 
   getProviders: function() {
     console.log('Getting providers...');
+
+
+  
+  
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
@@ -96,13 +109,16 @@ App = {
         (async function loop() {
           for (i = 0; i < result.length; i++) {
             addr = result[i];
+            console.log("Adding prov: " + addr);
             await providerFactoryInstance.getName(addr).then(function(provName) {
               providerTemplate.find('.address').text(addr);
               providerTemplate.find('.panel-title').text(provName);
               providerTemplate.find('.asset-details').attr("id","asset-" + addr);
-              providerTemplate.find('.btn-listAssets').attr("onclick", "getLicenseAssets(" + addr + ")")
+              providerTemplate.find('.btn-listAssets').attr("onclick", "App.getLicenseAssets('" + addr + "')");
+              providerTemplate.find('.btn-createAsset').attr("onclick", "App.createLicenseAssets('" + addr + "')");
+              //providerTemplate.find('.btn-createAssetWA').attr("onclick", "App.createLicenseAssetsWA('" + addr + "')");
+              //providerTemplate.find('#overlay').attr("id","overlay-" + addr);
               providerList.append(providerTemplate.html());
-
             });
           }
         })();
@@ -122,7 +138,7 @@ App = {
       var account = accounts[0];
       var licenseProviderInstance;
 
-      App.contracts.LicenseProvider.at(addr).then(function(instance) {
+      App.contracts.AssetProvider.at(addr).then(function(instance) {
         licenseProviderInstance = instance;
 
         return licenseProviderInstance.getLicenseAssets();
@@ -139,9 +155,8 @@ App = {
             addr = result[i];
             await licenseProviderInstance.getLicenseAsset(addr).then(function(res) {
               
-              licenseAssetTemplate.find('.laID').text(res[0]);
-              licenseAssetTemplate.find('.laName').text(res[1]);
-              licenseAssetTemplate.find('.laCost').text(res[2]);
+              licenseAssetTemplate.find('.laName').text(res[0]);
+              licenseAssetTemplate.find('.laCost').text(res[1]);
               licenseAssetList.append(licenseAssetTemplate.html());
 
             });
@@ -151,8 +166,78 @@ App = {
         console.log(err.message);
       });
     });
-  }  
+  },
+  createLicenseAssets: function(addr) {
+    console.log('overlay LicenseAssets for LicenseProvider ' + addr);
 
+    $('#overlay').find('.btn-createAssetWA').attr("onclick", "App.createLicenseAssetsWA('" + addr + "')");
+
+
+    $('#overlay').fadeIn(300);  
+    
+    $('#close').click(function() {
+      $('#overlay').fadeOut(300);
+    });
+
+  },
+  createLicenseAssetsWA: function(addr) {
+    console.log('Creating LicenseAssets WA for LicenseProvider ' + addr);
+    event.preventDefault();
+
+    var assetCost = $('#swCost').val();
+    var assetName = $('#swName').val();
+
+    console.log('Create asset: ' + assetName + ' with cost: ' + assetCost);
+
+    var assetProviderInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.AssetProvider.at(addr).then(function(instance) {
+        assetProviderInstance = instance;
+
+        return assetProviderInstance.addLicenseAsset(assetName, assetCost);
+      }).then(function(result) {
+        alert('Creation Successful!');
+        return App.getProviders();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+      $('#overlay').fadeOut(300);
+
+    });
+  },  
+  getBalances: function() {
+    console.log('Getting balances...');
+
+    /*
+    var assetProviderInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.TutorialToken.deployed().then(function(instance) {
+        tutorialTokenInstance = instance;
+
+        return tutorialTokenInstance.balanceOf(account);
+      }).then(function(result) {
+        balance = result.c[0];
+
+        $('#TTBalance').text(balance);
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    }); */
+  }
 };
 
 $(function() {

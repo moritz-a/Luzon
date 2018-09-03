@@ -5,10 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>TutorialToken - Wallet</title>
+    <title>Luzon - Wallet</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/luzon.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -37,7 +38,7 @@
               <h4>Transfer</h4>
               <input type="text" class="form-control" id="ProviderName" placeholder="Name" />
               <input type="text" class="form-control" id="ProviderSymbol" placeholder="Symbol" />
-              <button class="btn btn-primary" id="createButton" type="button">Create</button>
+              <button class="btn btn-primary" id="createProviderButton" type="button">Create</button>
             </div>
           </div>
         </div>
@@ -55,8 +56,7 @@
           </div>
 
           <div id="providerTemplate" style="display: none;">
-            <div class="col-sm-6 col-md-4 col-lg-3">
-              <div class="panel panel-default panel-pet">
+              <div class="panel panel-default">
                 <div class="panel-heading">
                   <h3 class="panel-title">Provider</h3>
                 </div>
@@ -64,32 +64,40 @@
                   <strong>Symbol</strong>: <span class="symbol">MM</span><br/>
                   <strong>Address</strong>: <span class="address">0x0</span><br/>
                   <button class="btn btn-default btn-listAssets" type="button" data-id="0">List Assets</button>
-                  <button class="btn btn-default btn-createAsset" type="button" data-id="0">Create Assets</button>                                    
+                  <button class="btn btn-default btn-createAsset" type="button" id="createAssetButton">Create Assets</button>                                    
                   <div class="panel-body asset-details" id="assets">
 
                   </div>
+                 
                 </div>
-                
-              </div>
             </div>
           </div>      
           
           <div id="licenseAssetTemplate" style="display: none;">
-            <div class="col-sm-6 col-md-4 col-lg-3">
               <div class="panel panel-default panel-pet">
                 <div class="panel-heading">
                   <h3 class="panel-title">LicenseAsset</h3>
                 </div>
                 <div class="panel-body">
-                  <strong>ID</strong>: <span class="laID">laID</span><br/>
                   <strong>Name</strong>: <span class="laName">laName</span><br/>    
                   <strong>Cost</strong>: <span class="laCost">laCost</span><br/>    
                 
                 </div>
               </div>
-              
-            </div>
+
           </div>
+
+          <div id="overlay">
+            <div id="popup">
+                <div id="close">X</div>
+                <div>
+                  <h4>Provider Name</h4>
+                  <input type="text" class="form-control" id="swCost" placeholder="Cost" />
+                  <input type="text" class="form-control" id="swName" placeholder="Name" />
+                  <button class="btn btn-default btn-createAssetWA" id="createAssetWA" type="button">Create</button>
+                </div>
+            </div>
+         </div>             
                          
 <!---
       <div id="petsRow" class="row">

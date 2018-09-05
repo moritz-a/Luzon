@@ -22,8 +22,9 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-12 col-sm-8 col-sm-push-2">
-          <h1 class="text-center">ProviderFactory</h1>
+          <h1 class="text-center">ProviderView</h1>
           <hr/>
+          <a href="ConsumerView.html">Consumer View</a>
           <br/>
         </div>
       </div>
@@ -59,12 +60,14 @@
               <div class="panel panel-default">
                 <div class="panel-heading">
                   <h3 class="panel-title">Provider</h3>
+                  <strong>Balance</strong>: <span class="LTBalance" id="LTBalance-"></span> LT<br/><br/>                  
                 </div>
                 <div class="panel-body">
                   <strong>Symbol</strong>: <span class="symbol">MM</span><br/>
                   <strong>Address</strong>: <span class="address">0x0</span><br/>
                   <button class="btn btn-default btn-listAssets" type="button" data-id="0">List Assets</button>
-                  <button class="btn btn-default btn-createAsset" type="button" id="createAssetButton">Create Assets</button>                                    
+                  <button class="btn btn-default btn-createAsset" type="button" id="createAssetButton">Create Assets</button>    
+                  <button class="btn btn-default btn-buyToken" type="button" id="buyTokenButton">Buy Token</button>                                    
                   <div class="panel-body asset-details" id="assets">
 
                   </div>
@@ -87,7 +90,7 @@
 
           </div>
 
-          <div id="overlay">
+          <div id="overlayCreateAsset" class="overlay">
             <div id="popup">
                 <div id="close">X</div>
                 <div>
@@ -97,8 +100,18 @@
                   <button class="btn btn-default btn-createAssetWA" id="createAssetWA" type="button">Create</button>
                 </div>
             </div>
-         </div>             
-                         
+         </div> 
+
+         <div id="overlayBuyToken" class="overlay">
+          <div id="popup">
+              <div id="close">X</div>
+              <div>
+                <h4>Buy Tokens</h4>
+                <input type="text" class="form-control" id="amount" placeholder="10" />
+                <button class="btn btn-default btn-buyToken" id="buyToken" type="button">Create</button>
+              </div>
+          </div>
+       </div>             
 <!---
       <div id="petsRow" class="row">
         <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">

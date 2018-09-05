@@ -55,7 +55,7 @@ contract AssetProvider {
     string public name;
     uint public date; // registrationDate
     uint public licenseAssetCounter;
-    LuzonToken public tokenAddress;
+    LuzonToken public token;
 
     mapping (uint => LicenseAsset) licenseAssets;
     uint[] public licenseAssetsLUT;
@@ -75,7 +75,7 @@ contract AssetProvider {
         date = now;
         
         //token
-        tokenAddress = new LuzonToken(_providerName, _providerSymbol);
+        token = new LuzonToken(_providerName, _providerSymbol);
         
     }
 
@@ -99,50 +99,57 @@ contract AssetProvider {
     }
 
     function getTokens(uint amount) public {
-        tokenAddress.transfer(msg.sender, amount);
+        token.transfer(msg.sender, amount);
+    }
+    function getBalanceOf(address _addr) public view returns (uint256)
+    {
+        return token.balanceOf(_addr);
+    }
+}
+
+contract ConsumerFactory {
+
+    address[] public consumerList;
+    uint public counter = 0;
+    mapping(address => string) names;
+
+    function createConsumer(string _name) public {
+        counter = counter + 1;
+        address consumerAddress = new AssetConsumer( _name, msg.sender, counter);
+        consumerList.push(consumerAddress);
+        names[consumerAddress] = _name;
+    }
+
+    function getConsumers() public view returns (address[]) {
+        return consumerList;
+    }
+
+    function getName(address _addr) public view returns (string) {
+        return names[_addr];
     }
 }
 
 contract AssetConsumer {
     address[] public users;
     address public owner;
+    string public name;
     uint userCounter;
+    uint public id;
 
-    constructor (address _creator) public {
+    constructor (string _name, address _creator, uint _id) public {
         owner = _creator;
+        name = _name;
+        id = _id;
         userCounter = 0;
     }
 
     function addUser(address _user) public {
         require(msg.sender == owner, "Only the owner may add user");
         userCounter++;
-        users[userCounter] = new User(100);
+        users[userCounter] = _user;
     }
-}
 
-contract User is Heritable {
-
-  event Sent(address indexed payee, uint256 amount, uint256 balance);
-  event Received(address indexed payer, uint256 amount, uint256 balance);
-
-
-  constructor(uint256 _heartbeatTimeout) Heritable(_heartbeatTimeout) public {}
-
-  /**
-   * @dev wallet can receive funds.
-   */
-  function () external payable {
-    emit Received(msg.sender, msg.value, address(this).balance);
-  }
-
-  /**
-   * @dev wallet can send funds
-   */
-  function sendTo(address _payee, uint256 _amount) public onlyOwner {
-    require(_payee != address(0) && _payee != address(this));
-    require(_amount > 0);
-    _payee.transfer(_amount);
-    emit Sent(_payee, _amount, address(this).balance);
-}
-
+    function getUsers() public view returns (address[]) {
+        return users;
+    }    
 }

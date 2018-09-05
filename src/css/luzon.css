@@ -7,7 +7,7 @@ button {
     border-radius: 3px;	
 }
 
-#overlay {
+.overlay {
     position: fixed;
     height: 100%;
     width: 100%;

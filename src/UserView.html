@@ -22,37 +22,49 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-12 col-sm-8 col-sm-push-2">
-          <h1 class="text-center">Consumer View</h1>
+          <h1 class="text-center">User View</h1>
           <hr/>
           <a href="index.html">Provider View</a>
           <br/>
+          <a href="ConsumerView.html">Consumer View</a>
+          <br/>
         </div>
       </div>
-      <div id="Creator" class="row">
+      <div id="ConsumerRow" class="row">
         <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h3 class="panel-title">Create Provider</h3>
+              <h3 class="panel-title">Consumer</h3>
             </div>
-            <div class="panel-body">
-              <h4>Consumer Name</h4>
-              <input type="text" class="form-control" id="ConsumerName" placeholder="Name" />
-              <button class="btn btn-primary" id="createConsumerButton" type="button">Create</button>
+            <div class="panel-body" id="consumerList">
+
             </div>
           </div>
         </div>
 
-        <div id="Consumer Provider" class="row">
+        <div id="AssetProviderRow" class="row">
           <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
             <div class="panel panel-default">
               <div class="panel-heading">
-                <h3 class="panel-title">Deployed Consumer</h3>
+                <h3 class="panel-title">Asset Provider</h3>
               </div>
-              <div class="panel-body" id="consumerList">
-
+              <div class="panel-body" id="assetProviderList">
+  
               </div>
             </div>
           </div>
+
+          <div id="CheckoutRow" class="row">
+            <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title">Checkout</h3>
+                </div>
+                <div class="panel-body" id="checkOutPanel">
+    
+                </div>
+              </div>
+            </div>          
 
           <div id="consumerTemplate" style="display: none;">
               <div class="panel panel-default">
@@ -71,32 +83,40 @@
                 </div>
             </div>
           </div>      
-          
-          <div id="userTemplate" style="display: none;">
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  <h3 class="panel-title">User</h3>
-                </div>
-                <div class="panel-body">
-                  <strong>User</strong>: <span class="userName">userName</span><br/>    
-                  <strong>Quantity</strong>: <span class="laCost">userQuantity</span><br/>    
-                  <button class="btn btn-default btn-removeUser" type="button" id="removeUserButton">Remove User</button> 
-                
-                </div>
+          <div id="providerTemplate" style="display: none;">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">Provider</h3>
+                <strong>Balance</strong>: <span class="LTBalance" id="LTBalance-"></span> <span class="panel-tokenSymbol">XX</span><br/><br/>                  
               </div>
+              <div class="panel-body">
+                <strong>Symbol</strong>: <span class="panel-tokenSymbol symbol">XX</span><br/>
+                <strong>TokenName</strong>: <span class="panel-token">TokenName</span><br/>
+                <strong>Address</strong>: <span class="address">0x0</span><br/>
+                <button class="btn btn-default btn-listAssets" type="button" data-id="0">List Assets</button>
+                <button class="btn btn-default btn-createAsset" type="button" id="createAssetButton">Create Assets</button>    
+                <button class="btn btn-default btn-buyToken" type="button" id="buyTokenButton">Buy Token</button>                                    
+                <div class="panel-body asset-details" id="assets">
 
-          </div>
-
-          <div id="overlayAddUser" class="overlay">
-            <div id="popup">
-                <div id="close">X</div>
-                <div>
-                  <h4>User Name</h4>
-                  <input type="text" class="form-control" id="userAddress" placeholder="0x0" />
-                  <button class="btn btn-default btn-addUserWA" id="addUserWA" type="button">Add</button>
                 </div>
+               
+              </div>
+          </div>
+        </div>      
+        
+        <div id="licenseAssetTemplate" style="display: none;">
+            <div class="panel panel-default panel-pet">
+              <div class="panel-heading">
+                <h3 class="panel-title">LicenseAsset</h3>
+              </div>
+              <div class="panel-body">
+                <strong>Name</strong>: <span class="laName">laName</span><br/>    
+                <strong>Cost</strong>: <span class="laCost">laCost</span><br/>    
+              
+              </div>
             </div>
-         </div> 
+
+        </div>    
 
           
      </div>

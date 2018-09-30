@@ -157,9 +157,11 @@ App = {
           for (i = 0; i < result.length; i++) {
             addr = result[i];
             console.log("Adding prov: " + addr);
-            await providerFactoryInstance.getName(addr).then(function(provName) {
+            await providerFactoryInstance.getProviderInfo(addr).then(function(provInfo) {
               providerTemplate.find('.address').text(addr);
-              providerTemplate.find('.panel-title').text(provName);
+              providerTemplate.find('.panel-title').text(provInfo[0]);
+              providerTemplate.find('.panel-token').text(provInfo[1]);
+              providerTemplate.find('.panel-tokenSymbol').text(provInfo[2]);
               providerTemplate.find('.asset-details').attr("id","asset-" + addr);
               providerTemplate.find('.btn-listAssets').attr("onclick", "App.getLicenseAssets('" + addr + "')");
               providerTemplate.find('.btn-createAsset').attr("onclick", "App.createLicenseAssets('" + addr + "')");
@@ -167,8 +169,8 @@ App = {
 
               providerTemplate.find('.LTBalance').attr("id", "LTBalance-" + addr );
 
-              //providerTemplate.find('.btn-createAssetWA').attr("onclick", "App.createLicenseAssetsWA('" + addr + "')");
-              //providerTemplate.find('#overlay').attr("id","overlay-" + addr);
+              providerTemplate.find('.btn-createAssetWA').attr("onclick", "App.createLicenseAssetsWA('" + addr + "')");
+              providerTemplate.find('#overlay').attr("id","overlay-" + addr);
               providerList.append(providerTemplate.html());
               App.getBalances(addr);
             });
@@ -210,6 +212,7 @@ App = {
               consumerTemplate.find('.address').text(addr);
               consumerTemplate.find('.btn-addUser').attr("onclick", "App.addUserOverlay('" + addr + "')");
               consumerTemplate.find('.btn-listUser').attr("onclick", "App.listUsers('" + addr + "')");
+              consumerTemplate.find('.userList').attr("id", "userList-" + addr );
               consumerList.append(consumerTemplate.html());
             });
           }
@@ -234,15 +237,19 @@ App = {
           assetConsumerInstance = instance;
           return assetConsumerInstance.getUsers();
           }).then(function(result) {
-            var userList = $('#userList');
+            var userList = $('#userList-' + addr);
             var userTemplate = $('#userTemplate');
             //reset list
             userList.html("");
   
             for (i = 0; i < result.length; i++) {
-              addr = result[i];
-              console.log("Adding user: " + addr);
-              userTemplate.find('.userName').text(addr);
+              var userAddr = result[i];
+              console.log("Adding user: " + userAddr);
+              userTemplate.find('.userName').text(userAddr);
+              userTemplate.find('.btn-removeUser').attr("onclick", "App.removeUser('" + addr + "','" + userAddr + "')");
+
+              userList.append(userTemplate.html());
+
             }
           }).catch(function(err) {
             console.log(err.message);
@@ -330,7 +337,7 @@ App = {
   },    
   createLicenseAssetsWA: function(addr) {
     console.log('Creating LicenseAssets WA for LicenseProvider ' + addr);
-    event.preventDefault();
+    //event.preventDefault();
 
     var assetCost = $('#swCost').val();
     var assetName = $('#swName').val();
@@ -362,7 +369,7 @@ App = {
   },  
   buyTokenWA: function(addr) {
     console.log('BuyToken WA for LicenseProvider ' + addr);
-    event.preventDefault();
+    //event.preventDefault();
 
     var amount = $('#amount').val();
 
@@ -394,7 +401,7 @@ App = {
   },   
   addUserWA: function(addr) {
     console.log('AddUser WA for Consumer ' + addr);
-    event.preventDefault();
+    //event.preventDefault();
 
     var user = $('#userAddress').val();
 
@@ -423,6 +430,31 @@ App = {
 
     });
   },  
+  removeUser: function(consumerAddr, userAddr) {
+    console.log('Remove User ' + userAddr + ' from Consumer ' + consumerAddr);
+
+    var assetConsumerInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.AssetConsumer.at(consumerAddr).then(function(instance) {
+        assetConsumerInstance = instance;
+
+        return assetConsumerInstance.removeUser(userAddr);
+
+      }).then(function(result) {
+        alert('Remove Successful!');
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+
+    });
+  },  
   getBalances: function(addr) {
     console.log('Getting balances for provider ' + addr);
 
@@ -438,7 +470,7 @@ App = {
       App.contracts.AssetProvider.at(addr).then(function(instance) {
         assetProviderInstance = instance;
 
-        return assetProviderInstance.getBalanceOf(account);
+        return assetProviderInstance.getBalanceOf(addr);
       }).then(function(result) {
         balance = result.c[0];
 

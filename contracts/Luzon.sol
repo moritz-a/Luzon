@@ -13,21 +13,28 @@ contract ProviderFactory {
 
     address[] public providerList;
     uint public counter = 0;
-    mapping(address => string) names;
+    //mapping(address => string) names;
+    mapping(address => AssetProvider) public assetStructs;
 
     function createProvider(string _name, string _symbol) public {
         counter = counter + 1;
         address providerAddress = new AssetProvider(msg.sender, _name, _symbol, counter);
         providerList.push(providerAddress);
-        names[providerAddress] = _name;
+        //names[providerAddress] = _name;
+        assetStructs[providerAddress] = AssetProvider(providerAddress);
     }
 
     function getProviders() public view returns (address[]) {
         return providerList;
     }
 
-    function getName(address _addr) public view returns (string) {
-        return names[_addr];
+    function getProviderInfo(address _addr) public view returns (string providerName, string tokenName, string tokenSymbol){
+        AssetProvider p = assetStructs[_addr];
+        //return (names[_addr], _addr.token.symbol);
+        //return (p.name, p.token.symbol);
+        LuzonToken t = LuzonToken(p.token());
+        return (p.name(), t.name(), t.symbol());
+
     }
 }
 
@@ -39,7 +46,6 @@ contract LuzonToken is StandardToken {
     uint public INITIAL_SUPPLY = 12000;
 
     constructor(string _name, string _symbol) public {
-        //name = _name + "Token";
         name = string(abi.encodePacked(_name, "Token"));
         symbol = _symbol;
         totalSupply_ = INITIAL_SUPPLY;
@@ -55,7 +61,7 @@ contract AssetProvider {
     string public name;
     uint public date; // registrationDate
     uint public licenseAssetCounter;
-    LuzonToken public token;
+    address public token;
 
     mapping (uint => LicenseAsset) licenseAssets;
     uint[] public licenseAssetsLUT;
@@ -99,11 +105,12 @@ contract AssetProvider {
     }
 
     function getTokens(uint amount) public {
-        token.transfer(msg.sender, amount);
+        //token.transfer(msg.sender, amount);
     }
-    function getBalanceOf(address _addr) public view returns (uint256)
+    function getBalanceOf(address _addr) public view returns (uint)
     {
-        return token.balanceOf(_addr);
+        LuzonToken t = LuzonToken(token);
+        return t.balanceOf(_addr);
     }
 }
 
@@ -130,10 +137,11 @@ contract ConsumerFactory {
 }
 
 contract AssetConsumer {
-    address[] public users;
+    address[] public userList;
+    mapping (address => string) users;
     address public owner;
     string public name;
-    uint userCounter;
+    uint public userCounter = 0;
     uint public id;
 
     constructor (string _name, address _creator, uint _id) public {
@@ -146,10 +154,25 @@ contract AssetConsumer {
     function addUser(address _user) public {
         require(msg.sender == owner, "Only the owner may add user");
         userCounter++;
-        users[userCounter] = _user;
+        //address userAddress = new 
+        userList.push(_user);
     }
 
     function getUsers() public view returns (address[]) {
-        return users;
+        return userList;
     }    
+
+    function removeUser(address _user) public {
+        require(msg.sender == owner, "Only the owner may remove user");
+        
+        for (uint i = 0; i<userList.length; i++) {
+            if(userList[i] == _user)
+            {
+                userCounter--;
+                userList[i] = 0x0000000000000000000000000000000000000099;
+                return;
+            }
+        }
+    }
+
 }

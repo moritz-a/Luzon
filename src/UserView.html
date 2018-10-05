@@ -19,19 +19,21 @@
     <![endif]-->
   </head>
   <body>
-    <div class="container">
+<div class="container">
       <div class="row">
-        <div class="col-xs-12 col-sm-8 col-sm-push-2">
-          <h1 class="text-center">User View</h1>
-          <hr/>
-          <a href="index.html">Provider View</a>
-          <br/>
-          <a href="ConsumerView.html">Consumer View</a>
-          <br/>
+          <div class="none">
+            <h1 class="text-center">User View</h1>
+            <hr/>
+            <a href="index.html">Provider View</a>
+            <br/>
+            <a href="ConsumerView.html">Consumer View</a>
+            <br/>
+          </div>
         </div>
-      </div>
-      <div id="ConsumerRow" class="row">
-        <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+    <div class="row">
+
+      <div id="ConsumerRow" class="col-sm-4">
+        <div class="row">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 class="panel-title">Consumer</h3>
@@ -41,21 +43,21 @@
             </div>
           </div>
         </div>
-
-        <div id="AssetProviderRow" class="row">
-          <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+      </div>
+        <div id="AssetProviderRow" class="col-sm-4">
+          <div class="row">
             <div class="panel panel-default">
               <div class="panel-heading">
                 <h3 class="panel-title">Asset Provider</h3>
               </div>
-              <div class="panel-body" id="assetProviderList">
+              <div class="panel-body" id="providerList">
   
               </div>
             </div>
           </div>
-
-          <div id="CheckoutRow" class="row">
-            <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+          </div>
+          <div id="CheckoutRow" class="col-sm-4">
+            <div class="row">
               <div class="panel panel-default">
                 <div class="panel-heading">
                   <h3 class="panel-title">Checkout</h3>
@@ -65,7 +67,9 @@
                 </div>
               </div>
             </div>          
-
+          </div>
+        </div>
+      </div>
           <div id="consumerTemplate" style="display: none;">
               <div class="panel panel-default">
                 <div class="panel-heading">
@@ -74,15 +78,11 @@
                 <div class="panel-body">
                   <strong>Name</strong>: <span class="name">ConsumerName</span><br/>
                   <strong>Address</strong>: <span class="address">0x0</span><br/>
-                  <button class="btn btn-default btn-listUser" type="button" data-id="0">List User</button>
-                  <button class="btn btn-default btn-addUser" type="button" id="addUserButton">Add Users</button>    
-                  <div class="panel-body userList" id="userList">
-
-                  </div>
-                 
+                  <button class="btn btn-default btn-slConsumer" type="button" data-id="0">Select</button>
                 </div>
             </div>
-          </div>      
+          </div>     
+
           <div id="providerTemplate" style="display: none;">
             <div class="panel panel-default">
               <div class="panel-heading">
@@ -93,9 +93,8 @@
                 <strong>Symbol</strong>: <span class="panel-tokenSymbol symbol">XX</span><br/>
                 <strong>TokenName</strong>: <span class="panel-token">TokenName</span><br/>
                 <strong>Address</strong>: <span class="address">0x0</span><br/>
-                <button class="btn btn-default btn-listAssets" type="button" data-id="0">List Assets</button>
-                <button class="btn btn-default btn-createAsset" type="button" id="createAssetButton">Create Assets</button>    
-                <button class="btn btn-default btn-buyToken" type="button" id="buyTokenButton">Buy Token</button>                                    
+                <button class="btn btn-default btn-listAssets" type="button" data-id="0">List Assets</button>                                
+
                 <div class="panel-body asset-details" id="assets">
 
                 </div>
@@ -112,15 +111,14 @@
               <div class="panel-body">
                 <strong>Name</strong>: <span class="laName">laName</span><br/>    
                 <strong>Cost</strong>: <span class="laCost">laCost</span><br/>    
-              
+                <button class="btn btn-default btn-slAssets" type="button" data-id="0">Select</button>                               
               </div>
             </div>
 
         </div>    
 
           
-     </div>
-    </div>
+
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

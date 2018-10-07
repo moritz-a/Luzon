@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
 import "openzeppelin-solidity/contracts/ownership/Heritable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 //credit https://github.com/Robin-C/CV/blob/master/src/ethereum/contract/company.sol
 
@@ -45,7 +46,7 @@ contract LuzonToken is StandardToken {
     uint8 public decimals = 0;
     uint public INITIAL_SUPPLY = 12000;
 
-    constructor(string _name, string _symbol) public {
+    constructor(address _creator, string _name, string _symbol) public {
         name = string(abi.encodePacked(_name, "Token"));
         symbol = _symbol;
         totalSupply_ = INITIAL_SUPPLY;
@@ -56,15 +57,24 @@ contract LuzonToken is StandardToken {
 }
 
 contract AssetProvider {
+    using SafeMath for uint256;    
     uint public ID;
     address public owner;
     string public name;
     uint public date; // registrationDate
     uint public licenseAssetCounter;
     address public token;
+    uint256 private _rate = 1;
 
     mapping (uint => LicenseAsset) licenseAssets;
     uint[] public licenseAssetsLUT;
+
+      event TokensPurchased(
+    address indexed purchaser,
+    address indexed beneficiary,
+    uint256 value,
+    uint256 amount
+);
 
 
     struct LicenseAsset {
@@ -81,7 +91,7 @@ contract AssetProvider {
         date = now;
         
         //token
-        token = new LuzonToken(_providerName, _providerSymbol);
+        token = new LuzonToken(_creator, _providerName, _providerSymbol);
         
     }
 
@@ -96,21 +106,52 @@ contract AssetProvider {
         licenseAssetsLUT.push(licenseAssetCounter);
     }
 
-    function getLicenseAsset(uint _num) public view returns (string _name, uint8 _cost) {
-        return (licenseAssets[_num].name, licenseAssets[_num].cost);
+    function getLicenseAsset(uint _num) public view returns (string _name, uint8 _cost, uint ID) {
+        return (licenseAssets[_num].name, licenseAssets[_num].cost, licenseAssets[_num].ID);
     }
 
     function getLicenseAssets() public view returns (uint[]) {
         return licenseAssetsLUT;
     }
 
-    function getTokens(uint amount) public {
-        //token.transfer(msg.sender, amount);
+    function buyTokens(address beneficiary) public payable {
+        LuzonToken t = LuzonToken(token);
+
+        uint256 weiAmount = msg.value;
+        _preValidatePurchase(beneficiary, weiAmount);
+
+        // calculate token amount to be created
+        uint256 tokens = _getTokenAmount(weiAmount);
+
+        t.transfer(beneficiary, tokens);
+        owner.transfer(msg.value);
+        
+        emit TokensPurchased(
+            msg.sender,
+            beneficiary,
+            weiAmount,
+            tokens
+            );
+
     }
-    function getBalanceOf(address _addr) public view returns (uint)
+    function getBalance() public view returns (uint)
     {
         LuzonToken t = LuzonToken(token);
-        return t.balanceOf(_addr);
+        return t.balanceOf(msg.sender);
+    }
+    function _preValidatePurchase(
+        address beneficiary,
+        uint256 weiAmount
+    )
+        internal
+    {
+        require(beneficiary != address(0));
+        require(weiAmount != 0);
+    }
+    function _getTokenAmount(uint256 weiAmount)
+    internal view returns (uint256)
+    {
+        return weiAmount.mul(_rate);
     }
 }
 
@@ -138,7 +179,7 @@ contract ConsumerFactory {
 
 contract AssetConsumer {
     address[] public userList;
-    mapping (address => string) users;
+    mapping (address => bool) users;
     address public owner;
     string public name;
     uint public userCounter = 0;
@@ -156,6 +197,9 @@ contract AssetConsumer {
         userCounter++;
         //address userAddress = new 
         userList.push(_user);
+        users[_user] = true;
+        //LuzonToken t = LuzonToken(token);
+        //t.approve(_user, 99999);
     }
 
     function getUsers() public view returns (address[]) {
@@ -165,6 +209,11 @@ contract AssetConsumer {
     function removeUser(address _user) public {
         require(msg.sender == owner, "Only the owner may remove user");
         
+        users[_user] = false;
+        //LuzonToken t = LuzonToken(token);
+
+        //t.approve(_user, 0);
+
         for (uint i = 0; i<userList.length; i++) {
             if(userList[i] == _user)
             {
@@ -173,6 +222,17 @@ contract AssetConsumer {
                 return;
             }
         }
+    }
+    function checkout(address assetProv, uint assetID) public payable
+    {
+        require(msg.sender != owner, "The software user cannot be the same account as the software consumer");
+        require(users[msg.sender], "User must be approved by the consumer");
+        AssetProvider ap = AssetProvider(assetProv);
+       // var (string assetName, uint8 cost, uint id) = ap.getLicenseAsset(assetID);
+        var (, cost, ) = ap.getLicenseAsset(assetID);
+
+        LuzonToken lt = LuzonToken(ap.token());
+        require (lt.transferFrom(this, msg.sender, cost), "didn't receive the necessary asset tokens!");
     }
 
 }

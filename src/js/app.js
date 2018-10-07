@@ -66,6 +66,8 @@ App = {
   bindEvents: function() {
     $(document).on('click', '#createProviderButton', App.createProvider);
     $(document).on('click', '#createConsumerButton', App.createConsumer);
+    $(document).on('click', '#checkoutButton', App.checkout);
+
   },
 
   createProvider: function(event) {
@@ -96,6 +98,7 @@ App = {
         console.log(err.message);
       });
     });
+    App.getProviders();
   },
 
   createConsumer: function(event) {
@@ -125,10 +128,19 @@ App = {
         console.log(err.message);
       });
     });
+    App.getConsumers();
   },
   getProviders: function() {
-    console.log('Getting providers...');
 
+    var providerList = $('#providerList');
+    if (providerList.length) {
+    console.log('Getting providers...');
+    }
+    else
+    {
+    console.log('No providers needed.');
+      return;
+    }
 
   
   
@@ -147,7 +159,6 @@ App = {
         return providerFactoryInstance.getProviders();
       }).then(function(result) {
 
-        var providerList = $('#providerList');
         var providerTemplate = $('#providerTemplate');
 
         //reset list
@@ -156,20 +167,26 @@ App = {
         (async function loop() {
           for (i = 0; i < result.length; i++) {
             addr = result[i];
+
             console.log("Adding prov: " + addr);
             await providerFactoryInstance.getProviderInfo(addr).then(function(provInfo) {
+              var provName = provInfo[0];
+              var provToken = provInfo[1];
+              var provTokenSymbol = provInfo[2];
+
               providerTemplate.find('.address').text(addr);
-              providerTemplate.find('.panel-title').text(provInfo[0]);
-              providerTemplate.find('.panel-token').text(provInfo[1]);
-              providerTemplate.find('.panel-tokenSymbol').text(provInfo[2]);
+              providerTemplate.find('.panel-title').text(provName);
+              providerTemplate.find('.panel-token').text(provToken);
+              providerTemplate.find('.panel-tokenSymbol').text(provTokenSymbol);
               providerTemplate.find('.asset-details').attr("id","asset-" + addr);
-              providerTemplate.find('.btn-listAssets').attr("onclick", "App.getLicenseAssets('" + addr + "')");
+              providerTemplate.find('.btn-listAssets').attr("onclick", "App.getLicenseAssets('" + addr + "','" + provName + "')");
               providerTemplate.find('.btn-createAsset').attr("onclick", "App.createLicenseAssets('" + addr + "')");
               providerTemplate.find('.btn-buyToken').attr("onclick", "App.buyTokenOverlay('" + addr + "')");
 
               providerTemplate.find('.LTBalance').attr("id", "LTBalance-" + addr );
 
               providerTemplate.find('.btn-createAssetWA').attr("onclick", "App.createLicenseAssetsWA('" + addr + "')");
+
               providerTemplate.find('#overlay').attr("id","overlay-" + addr);
               providerList.append(providerTemplate.html());
               App.getBalances(addr);
@@ -184,7 +201,20 @@ App = {
   },
 
   getConsumers: function() {
-    console.log('Getting consumers...');
+    var consumerList = $('#consumerList');
+
+
+    if (consumerList.length) {
+      console.log('Getting consumers...');
+
+      }
+      else
+      {
+      console.log('No consumers needed.');
+        return;
+      }
+
+
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
@@ -198,7 +228,6 @@ App = {
         consumerFactoryInstance = instance;
         return consumerFactoryInstance.getConsumers();
         }).then(function(result) {
-          var consumerList = $('#consumerList');
           var consumerTemplate = $('#consumerTemplate');
         //reset list
         consumerList.html("");
@@ -213,6 +242,7 @@ App = {
               consumerTemplate.find('.btn-addUser').attr("onclick", "App.addUserOverlay('" + addr + "')");
               consumerTemplate.find('.btn-listUser').attr("onclick", "App.listUsers('" + addr + "')");
               consumerTemplate.find('.userList').attr("id", "userList-" + addr );
+              consumerTemplate.find('.btn-slConsumer').attr("onclick", "App.selectConsumer('" + conName  + "','"+ addr + "')");
               consumerList.append(consumerTemplate.html());
             });
           }
@@ -257,8 +287,8 @@ App = {
         });
       },
 
-  getLicenseAssets: function(addr) {
-    console.log('Getting LicenseAssets for LicenseProvider ' + addr);
+  getLicenseAssets: function(provAddr, provName) {
+    console.log('Getting LicenseAssets for LicenseProvider ' + provAddr);
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
@@ -267,13 +297,13 @@ App = {
       var account = accounts[0];
       var licenseProviderInstance;
 
-      App.contracts.AssetProvider.at(addr).then(function(instance) {
+      App.contracts.AssetProvider.at(provAddr).then(function(instance) {
         licenseProviderInstance = instance;
 
         return licenseProviderInstance.getLicenseAssets();
       }).then(function(result) {
 
-        var licenseAssetList = $('#asset-' + addr);
+        var licenseAssetList = $('#asset-' + provAddr);
         var licenseAssetTemplate = $('#licenseAssetTemplate');
 
         //reset list
@@ -281,11 +311,16 @@ App = {
 
         (async function loop() {
           for (i = 0; i < result.length; i++) {
-            addr = result[i];
-            await licenseProviderInstance.getLicenseAsset(addr).then(function(res) {
+            var assetAddr = result[i];
+            await licenseProviderInstance.getLicenseAsset(assetAddr).then(function(res) {
+              var assetName = res[0];
+              var assetCost = res[1];
+              var assetId = res[2];
               
-              licenseAssetTemplate.find('.laName').text(res[0]);
-              licenseAssetTemplate.find('.laCost').text(res[1]);
+              licenseAssetTemplate.find('.laName').text(assetName);
+              licenseAssetTemplate.find('.laCost').text(assetCost);
+              licenseAssetTemplate.find('.btn-slAssets').attr("onclick", "App.selectAsset('" + provName  + "','"+ provAddr + "','"+ assetName +"','"+ assetCost +"','"+ assetId +"')");
+
               licenseAssetList.append(licenseAssetTemplate.html());
 
             });
@@ -295,6 +330,45 @@ App = {
         console.log(err.message);
       });
     });
+  },
+  selectAsset : function(provName, provAddr, assetName, assetCost, assetID)
+  {
+    console.log("selectAsset;provName:"+ provName);
+    console.log("selectAsset;provAddr:"+ provAddr);
+    console.log("selectAsset;assetName:"+ assetName);
+    console.log("selectAsset;assetCost:"+ assetCost);
+    console.log("selectAsset;assetID:"+ assetID);
+
+    $('.asset-panel').attr("style", "display:inline;");
+    $('.assetProvider').text(provName);
+    $('.assetName').text(assetName);
+    $('.assetCost').text(assetCost);
+    $('.providerAddress').text(provAddr);
+    $('.assetID').text(assetID);
+
+    var conName = $("#consumerName").text();
+    if (conName != "empty")
+    {
+        $("#checkoutButton").attr("style", "display:inline;");
+    }
+
+
+
+  },
+  selectConsumer : function(conName, conAddr)
+  {
+    console.log("selectConsumer;conName:"+ conName);
+    console.log("selectConsumer;conAddr:"+ conAddr);
+
+    $('.consumer-panel').attr("style", "display:inline;");
+    $('.consumerName').text(conName);
+    $('.consumerAddress').text(conAddr);
+
+    if ($("#assetName").text() != "empty")
+    {
+        $("#checkoutButton").attr("style", "display:inline;");
+    }
+
   },
   createLicenseAssets: function(addr) {
     console.log('overlay LicenseAssets for LicenseProvider ' + addr);
@@ -455,6 +529,44 @@ App = {
 
     });
   },  
+  checkout: function(event) {
+    event.preventDefault();
+
+    var assetProvider =$('#assetProvider').text();
+    var assetName =$('#assetName').text();
+    var assetCost =$('#assetCost').text();
+    var providerAddress =$('#providerAddress').text().valueOf();
+    var assetID =$('#assetID').text();
+
+    var consumerName =$('#consumerName').text();
+    var consumerAddress = $('#consumerAddress').text().valueOf();
+
+
+    console.log('Checking out!!!');
+
+    var assetConsumerInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.AssetConsumer.at(consumerAddress).then(function(instance) {
+        assetConsumerInstance = instance;
+        console.log("found consumer address");
+      //  return assetConsumerInstance.checkout(providerAddress, assetID);
+      return assetConsumerInstance.getUsers();
+      }).then(function(result) {
+        alert('Checkout Successful!');
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+
+    });
+
+  },  
   getBalances: function(addr) {
     console.log('Getting balances for provider ' + addr);
 
@@ -470,7 +582,7 @@ App = {
       App.contracts.AssetProvider.at(addr).then(function(instance) {
         assetProviderInstance = instance;
 
-        return assetProviderInstance.getBalanceOf(addr);
+        return assetProviderInstance.getBalance();
       }).then(function(result) {
         balance = result.c[0];
 

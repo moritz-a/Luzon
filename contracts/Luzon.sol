@@ -33,7 +33,7 @@ contract ProviderFactory {
         AssetProvider p = assetStructs[_addr];
         //return (names[_addr], _addr.token.symbol);
         //return (p.name, p.token.symbol);
-        LuzonToken t = LuzonToken(p.token());
+        LuzonToken t = p.luzon();
         return (p.name(), t.name(), t.symbol());
 
     }
@@ -46,7 +46,7 @@ contract LuzonToken is StandardToken {
     uint8 public decimals = 0;
     uint public INITIAL_SUPPLY = 12000;
 
-    constructor(address _creator, string _name, string _symbol) public {
+    constructor(string _name, string _symbol) public {
         name = string(abi.encodePacked(_name, "Token"));
         symbol = _symbol;
         totalSupply_ = INITIAL_SUPPLY;
@@ -63,7 +63,8 @@ contract AssetProvider {
     string public name;
     uint public date; // registrationDate
     uint public licenseAssetCounter;
-    address public token;
+    //address public token;
+    LuzonToken public luzon;
     uint256 private _rate = 1;
 
     mapping (uint => LicenseAsset) licenseAssets;
@@ -75,6 +76,8 @@ contract AssetProvider {
     uint256 value,
     uint256 amount
 );
+
+event PreTransfer(address executer, address user, address token, uint balance);
 
 
     struct LicenseAsset {
@@ -91,7 +94,7 @@ contract AssetProvider {
         date = now;
         
         //token
-        token = new LuzonToken(_creator, _providerName, _providerSymbol);
+        luzon = new LuzonToken(_providerName, _providerSymbol);
         
     }
 
@@ -106,7 +109,7 @@ contract AssetProvider {
         licenseAssetsLUT.push(licenseAssetCounter);
     }
 
-    function getLicenseAsset(uint _num) public view returns (string _name, uint8 _cost, uint ID) {
+    function getLicenseAsset(uint _num) public view returns (string _name, uint8 _cost, uint _ID) {
         return (licenseAssets[_num].name, licenseAssets[_num].cost, licenseAssets[_num].ID);
     }
 
@@ -114,21 +117,21 @@ contract AssetProvider {
         return licenseAssetsLUT;
     }
 
-    function buyTokens(address beneficiary) public payable {
-        LuzonToken t = LuzonToken(token);
+    function buyTokens() public payable {
+        //LuzonToken t = LuzonToken(token);
 
         uint256 weiAmount = msg.value;
-        _preValidatePurchase(beneficiary, weiAmount);
+        _preValidatePurchase(msg.sender, weiAmount);
 
         // calculate token amount to be created
         uint256 tokens = _getTokenAmount(weiAmount);
 
-        t.transfer(beneficiary, tokens);
+        luzon.transfer(msg.sender, tokens);
         owner.transfer(msg.value);
-        
+
         emit TokensPurchased(
             msg.sender,
-            beneficiary,
+            msg.sender,
             weiAmount,
             tokens
             );
@@ -136,13 +139,29 @@ contract AssetProvider {
     }
     function getBalance() public view returns (uint)
     {
-        LuzonToken t = LuzonToken(token);
-        return t.balanceOf(msg.sender);
+        //LuzonToken t = LuzonToken(token);
+        return luzon.balanceOf(msg.sender);
+    }
+    function approve(address userAddr) public
+    {
+        //LuzonToken t = LuzonToken(token);
+        luzon.approve(userAddr, 9999);
+    }
+    function transferTokens(address userAddr, uint256 amount) public returns (uint)
+    {
+            //    LuzonToken t = LuzonToken(token);
+        emit PreTransfer(this, userAddr, address(0), 0);
+
+        //return luzon.balanceOf(this);
+
+        /*LuzonToken t = LuzonToken(token);
+        emit PreTransfer(this, userAddr);*/
+        luzon.transfer(userAddr, amount);
     }
     function _preValidatePurchase(
         address beneficiary,
         uint256 weiAmount
-    )
+    ) pure
         internal
     {
         require(beneficiary != address(0));
@@ -184,6 +203,18 @@ contract AssetConsumer {
     string public name;
     uint public userCounter = 0;
     uint public id;
+    address public _debugOwner;
+    address public _debugMsgSender;
+    address public _debugToken;
+    address public _debug2Token = 0x66;
+    address public _debug2User = 0x66;
+
+          event UserAdded(
+    address  owner,
+    address  user,
+    address  token,
+    address  assetProv
+);
 
     constructor (string _name, address _creator, uint _id) public {
         owner = _creator;
@@ -192,14 +223,22 @@ contract AssetConsumer {
         userCounter = 0;
     }
 
-    function addUser(address _user) public {
+    function addUser(address userAddr, address ap) public {
         require(msg.sender == owner, "Only the owner may add user");
+        AssetProvider prov = AssetProvider(ap);
+        //LuzonToken t = LuzonToken(prov.token());
+        //t.approve(userAddr, 1234);
+        prov.approve(userAddr);
+
+       emit UserAdded(msg.sender, userAddr, 0, ap);
+
         userCounter++;
         //address userAddress = new 
-        userList.push(_user);
-        users[_user] = true;
-        //LuzonToken t = LuzonToken(token);
-        //t.approve(_user, 99999);
+        userList.push(userAddr);
+        users[userAddr] = true;
+
+        //_debug2Token = prov.token();
+        _debug2User = userAddr;
     }
 
     function getUsers() public view returns (address[]) {
@@ -223,16 +262,25 @@ contract AssetConsumer {
             }
         }
     }
-    function checkout(address assetProv, uint assetID) public payable
+
+
+
+    function checkout(address assetProv, uint assetID) public returns (uint)
     {
         require(msg.sender != owner, "The software user cannot be the same account as the software consumer");
         require(users[msg.sender], "User must be approved by the consumer");
         AssetProvider ap = AssetProvider(assetProv);
        // var (string assetName, uint8 cost, uint id) = ap.getLicenseAsset(assetID);
-        var (, cost, ) = ap.getLicenseAsset(assetID);
+        uint cost;
+        (, cost, ) = ap.getLicenseAsset(assetID);
 
-        LuzonToken lt = LuzonToken(ap.token());
-        require (lt.transferFrom(this, msg.sender, cost), "didn't receive the necessary asset tokens!");
+        //LuzonToken lt = LuzonToken(ap.token());
+        //_debugToken = ap.token();
+        _debugOwner = owner;
+        _debugMsgSender = msg.sender;
+        return ap.transferTokens(msg.sender, cost);
+        //lt.transferFrom(owner, msg.sender, 10);
+        //require (lt.transferFrom(this, msg.sender, cost), "didn't receive the necessary asset tokens!");
     }
 
 }

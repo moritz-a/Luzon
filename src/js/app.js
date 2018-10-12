@@ -446,6 +446,7 @@ App = {
     //event.preventDefault();
 
     var amount = $('#amount').val();
+    var target = $('#target').val();
 
     console.log('Buy Token amount: ' + amount);
 
@@ -461,7 +462,7 @@ App = {
       App.contracts.AssetProvider.at(addr).then(function(instance) {
         assetProviderInstance = instance;
 
-        return assetProviderInstance.getTokens(amount, {from: account, gas: 100000});
+        return assetProviderInstance.buyTokens(target, {from: account, gas: 100000, value: amount});
 
       }).then(function(result) {
         alert('Buy Successful!');
@@ -556,8 +557,7 @@ App = {
       App.contracts.AssetConsumer.at(consumerAddress).then(function(instance) {
         assetConsumerInstance = instance;
         console.log("found consumer address");
-      //  return assetConsumerInstance.checkout(providerAddress, assetID);
-      return assetConsumerInstance.getUsers();
+      return assetConsumerInstance.checkoutAsset(providerAddress, assetID);
       }).then(function(result) {
         alert('Checkout Successful!');
       }).catch(function(err) {
@@ -567,17 +567,41 @@ App = {
     });
 
   },  
-  getBalances: function(addr) {
+  getBalances: function(addrProv) {
+      var addrCon;
+      var consumerFactoryInstance;
+
+      App.contracts.ConsumerFactory.deployed().then(function(instance) {
+        consumerFactoryInstance = instance;
+        return consumerFactoryInstance.getConsumers();
+        }).then(function(result) {
+
+        (async function loop2() {
+          var balanceList = "";
+          for (i = 0; i < result.length; i++) {
+            addrCon = result[i];
+            console.log("query consumer: " + addrCon + "@provider:" + addrProv);
+
+            var instance = await App.contracts.AssetProvider.at(addrProv);
+            var res = await instance.getBalance({from: addrCon});
+            var name = await consumerFactoryInstance.getName(addrCon);
+
+            balanceList = balanceList + name + ": " + res.c[0];
+          }
+          $('#LTBalance-' + addrProv).text(balanceList);
+
+        })();
+        }).catch(function(err) {
+          console.log(err.message);
+        });
+    },
+
+
+
+  getBalances2: function(addr) {
     console.log('Getting balances for provider ' + addr);
 
     var assetProviderInstance;
-
-    web3.eth.getAccounts(function(error, accounts) {
-      if (error) {
-        console.log(error);
-      }
-
-      var account = accounts[0];
 
       App.contracts.AssetProvider.at(addr).then(function(instance) {
         assetProviderInstance = instance;
@@ -585,13 +609,11 @@ App = {
         return assetProviderInstance.getBalance();
       }).then(function(result) {
         balance = result.c[0];
-
         $('#LTBalance-' + addr).text(balance);
         console.log("balance: " + balance);
       }).catch(function(err) {
         console.log(err.message);
       });
-    });
   }
 };
 

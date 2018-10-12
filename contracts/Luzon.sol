@@ -77,7 +77,7 @@ contract AssetProvider {
     uint256 amount
 );
 
-event PreTransfer(address executer, address user, address token, uint balance);
+event PreTransfer(address executer, address user, address token, uint balance, uint amount);
 
 
     struct LicenseAsset {
@@ -117,16 +117,16 @@ event PreTransfer(address executer, address user, address token, uint balance);
         return licenseAssetsLUT;
     }
 
-    function buyTokens() public payable {
+    function buyTokens(address consumer) public payable {
         //LuzonToken t = LuzonToken(token);
 
         uint256 weiAmount = msg.value;
-        _preValidatePurchase(msg.sender, weiAmount);
+        _preValidatePurchase(consumer, weiAmount);
 
         // calculate token amount to be created
         uint256 tokens = _getTokenAmount(weiAmount);
 
-        luzon.transfer(msg.sender, tokens);
+        luzon.transfer(consumer, tokens);
         owner.transfer(msg.value);
 
         emit TokensPurchased(
@@ -147,10 +147,11 @@ event PreTransfer(address executer, address user, address token, uint balance);
         //LuzonToken t = LuzonToken(token);
         luzon.approve(userAddr, 9999);
     }
-    function transferTokens(address userAddr, uint256 amount) public returns (uint)
+    function transferTokens(address userAddr, uint256 amount) public payable
     {
             //    LuzonToken t = LuzonToken(token);
-        emit PreTransfer(this, userAddr, address(0), 0);
+        uint balance = getBalance();
+        emit PreTransfer(msg.sender, userAddr, address(0), balance, amount);
 
         //return luzon.balanceOf(this);
 
@@ -265,7 +266,7 @@ contract AssetConsumer {
 
 
 
-    function checkout(address assetProv, uint assetID) public returns (uint)
+    function checkout(address assetProv, uint assetID) public payable
     {
         require(msg.sender != owner, "The software user cannot be the same account as the software consumer");
         require(users[msg.sender], "User must be approved by the consumer");
@@ -278,7 +279,7 @@ contract AssetConsumer {
         //_debugToken = ap.token();
         _debugOwner = owner;
         _debugMsgSender = msg.sender;
-        return ap.transferTokens(msg.sender, cost);
+        ap.transferTokens(msg.sender, cost);
         //lt.transferFrom(owner, msg.sender, 10);
         //require (lt.transferFrom(this, msg.sender, cost), "didn't receive the necessary asset tokens!");
     }

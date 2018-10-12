@@ -17,6 +17,7 @@ contract('Luzon Tests', async (accounts) => {
     let provider1;
     let provAddr1;
     let consumer1;
+    let con1addr;
 
 
   it("should find no Providers on inital deploy", async () => {
@@ -94,7 +95,7 @@ contract('Luzon Tests', async (accounts) => {
         conFactoryInstance = await ConsumerFactory.deployed();
         await conFactoryInstance.createConsumer("TestConsumer", { from: account2 });
         let consumers = await conFactoryInstance.getConsumers();
-        let con1addr = consumers[0];
+        con1addr = consumers[0];
         let consumer1Name = await conFactoryInstance.getName(con1addr);
         assert.equal(consumer1Name, "TestConsumer");
 
@@ -119,9 +120,9 @@ contract('Luzon Tests', async (accounts) => {
         assert.equal(initialBalanceAcc1.toNumber(), 0);
         assert.equal(initialBalanceAcc2.toNumber(), 0);
 
-        await provider1.buyTokens({ from: account2, gas: 100000, value: 100});
+        await provider1.buyTokens(con1addr, { from: account2, gas: 100000, value: 100});
 
-        let balance2Acc2 = await provider1.getBalance({ from: account2});
+        let balance2Acc2 = await provider1.getBalance({ from: con1addr});
         assert.equal(balance2Acc2.toNumber(), 100);
 
         let balance2Acc1 = await provider1.getBalance({ from: account1});
@@ -136,10 +137,11 @@ contract('Luzon Tests', async (accounts) => {
          let users = await consumer1.getUsers();
          assert.equal (users[0], account3);
 
-         let debug2Token = await consumer1._debug2Token();
+         /*let debug2Token = await consumer1._debug2Token();
          let debug2User = await consumer1._debug2User();
          console.log("debug2Token:" + debug2Token);
          console.log("debug2User:" + debug2User);
+         */
 
          /*
          await consumer1.addUser(account4, provAddr1, {from: account2});
@@ -156,34 +158,39 @@ contract('Luzon Tests', async (accounts) => {
         assert.equal(assetCost, 10);
         assert.equal(assetId, 1);
 
-        let balance2Acc2 = await provider1.getBalance({ from: account2});
+       /* let balance2Acc2 = await provider1.getBalance({ from: account2});
         console.log("account2 balance: " + balance2Acc2);
         let balance2Acc3 = await provider1.getBalance({ from: account3});
         console.log("account3 balance: " + balance2Acc3);
+        */
 
         let tokenAddr = await provider1.luzon();
         let t = LuzonToken.at(tokenAddr);
 
         await consumer1.addUser(account3, provAddr1, {from: account2});
 
-        let allowance = await t.allowance(account2, account3);
+        /*let allowance = await t.allowance(account2, account3);
         console.log("allowance: " + allowance.toNumber());
 
         await t.approve(account3, 1234, {from: account2});
         allowance = await t.allowance(account2, account3);
 
-        console.log("allowance: " + allowance.toNumber());
-        let cores =await consumer1.checkout(provAddr1, 1, {from: account3, gas: 100000});
-        console.log("CRES: " + cores);
+        console.log("allowance: " + allowance.toNumber());*/
+        await consumer1.checkout(provAddr1, 1, {from: account3, gas: 1000000});
+        let balAcc3 = await provider1.getBalance({ from: account3});
+        /*console.log("bal: " + balAcc3);
 
         let debugOwner = await consumer1._debugOwner();
         let debugToken = await consumer1._debugToken();
         let debugMsgSender = await consumer1._debugMsgSender();
 
+        console.log("con1addr: " + con1addr);
+
         console.log("thisToken:" + tokenAddr + ";debugToken:" + debugToken);
         console.log("thisOwner:" + account2 + ";debugOwner:" + debugOwner);
         console.log("thisMsgSender:" + account3 + ";debugMsgSender:" + debugMsgSender);
         console.log("thisProvAcc:" + provAddr1);
+        */
 
 /*
 
@@ -197,6 +204,7 @@ contract('Luzon Tests', async (accounts) => {
 
         console.log("allowance: " + allowance.toNumber());
 */
+        assert.equal(balAcc3, 10);
      });
 
 

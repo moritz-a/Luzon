@@ -21,6 +21,14 @@ App = {
   },
 
   initContract: function() {
+
+    var appName = getUrlParameter('appName');
+
+
+    if (appName != undefined) {
+      App.initTestApp(appName);
+    }
+
     $.getJSON('ProviderFactory.json', function(data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract.
       var ProviderFactoryArtifact = data;
@@ -560,6 +568,8 @@ App = {
       return assetConsumerInstance.checkoutAsset(providerAddress, assetID);
       }).then(function(result) {
         alert('Checkout Successful!');
+        window.location.href = "/TestApp.html?appName=" + assetName +" &appID="+ assetID +"&appConsumer="+consumerAddress+"&appProvider=" +providerAddress;
+
       }).catch(function(err) {
         console.log(err.message);
       });
@@ -614,11 +624,52 @@ App = {
       }).catch(function(err) {
         console.log(err.message);
       });
+  },
+  
+  initTestApp : function(appName)
+  {
+    var appID = getUrlParameter('appID');
+    var consumerAddr = getUrlParameter('appConsumer');
+    var providerAddr = getUrlParameter('appProvider');
+    $('.appName').text(appName);
+    $('.appID').text(appID);
+    $('.appConsumer').text(consumerAddr);
+    $('.appProvider').text(providerAddr);
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      $('.currentUser').text(account);
+    });
+
+    //checkGrant
+
   }
-};
+}
+
+
 
 $(function() {
   $(window).load(function() {
     App.init();
   });
 });
+
+var getUrlParameter = function getUrlParameter(sParam) {
+  var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+      sURLVariables = sPageURL.split('&'),
+      sParameterName,
+      i;
+
+  for (i = 0; i < sURLVariables.length; i++) {
+      sParameterName = sURLVariables[i].split('=');
+
+      if (sParameterName[0] === sParam) {
+          return sParameterName[1] === undefined ? true : sParameterName[1];
+      }
+  }
+};

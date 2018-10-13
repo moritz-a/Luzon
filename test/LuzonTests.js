@@ -18,6 +18,7 @@ contract('Luzon Tests', async (accounts) => {
     let provAddr1;
     let consumer1;
     let con1addr;
+    let token;
 
 
   it("should find no Providers on inital deploy", async () => {
@@ -96,14 +97,14 @@ contract('Luzon Tests', async (accounts) => {
         await conFactoryInstance.createConsumer("TestConsumer", { from: account2 });
         let consumers = await conFactoryInstance.getConsumers();
         con1addr = consumers[0];
-        let consumer1Name = await conFactoryInstance.getName(con1addr);
-        assert.equal(consumer1Name, "TestConsumer");
+        let consumer1Name = await conFactoryInstance.getConsumerInfo(con1addr);
+        assert.equal(consumer1Name[0], "TestConsumer");
 
         await conFactoryInstance.createConsumer("TestConsumer2");
         consumers = await conFactoryInstance.getConsumers();
         con2addr = consumers[1];
-        consumer2 = await conFactoryInstance.getName(con2addr);
-        assert.equal(consumer2, "TestConsumer2");
+        consumer2 = await conFactoryInstance.getConsumerInfo(con2addr);
+        assert.equal(consumer2[0], "TestConsumer2");
 
         consumer1 = await AssetConsumer.at(con1addr);
         let con1owner = await consumer1.owner();
@@ -158,51 +159,45 @@ contract('Luzon Tests', async (accounts) => {
         assert.equal(assetCost, 10);
         assert.equal(assetId, 1);
 
-       /* let balance2Acc2 = await provider1.getBalance({ from: account2});
-        console.log("account2 balance: " + balance2Acc2);
-        let balance2Acc3 = await provider1.getBalance({ from: account3});
-        console.log("account3 balance: " + balance2Acc3);
-        */
-/*
-        let tokenAddr = await provider1.luzon();
-        let t = LuzonToken.at(tokenAddr);
-*/
-        /*let allowance = await t.allowance(account2, account3);
-        console.log("allowance: " + allowance.toNumber());
+        let balanceAcc1 = await provider1.getBalance({ from: account1});
+        let balanceAcc2 = await provider1.getBalance({ from: account2});
+        let balanceAcc3 = await provider1.getBalance({ from: account3});
+        let balanceProv1 = await provider1.getBalance({ from: provAddr1});
+        let balanceCon1 = await provider1.getBalance({ from: con1addr});
+        assert.equal(balanceAcc1, 0);
+        assert.equal(balanceAcc2, 0);
+        assert.equal(balanceAcc3, 0);
+        assert.equal(balanceProv1, 11900);
+        assert.equal(balanceCon1, 100);
 
-        await t.approve(account3, 1234, {from: account2});
-        allowance = await t.allowance(account2, account3);
+        token =  await consumer1.checkoutAsset(provAddr1, 1, {from: account3, gas: 1000000});
+        
+         balanceAcc1 = await provider1.getBalance({ from: account1});
+         balanceAcc2 = await provider1.getBalance({ from: account2});
+         balanceAcc3 = await provider1.getBalance({ from: account3});
+         balanceProv1 = await provider1.getBalance({ from: provAddr1});
+         balanceCon1 = await provider1.getBalance({ from: con1addr});
 
-        console.log("allowance: " + allowance.toNumber());*/
+         assert.equal(balanceAcc1, 0);
+         assert.equal(balanceAcc2, 0);
+         assert.equal(balanceAcc3, 10);
+         assert.equal(balanceProv1, 11900);
+         assert.equal(balanceCon1, 90);
+
+
         await consumer1.checkoutAsset(provAddr1, 1, {from: account3, gas: 1000000});
-        let balAcc3 = await provider1.getBalance({ from: account3});
-        /*console.log("bal: " + balAcc3);
 
-        let debugOwner = await consumer1._debugOwner();
-        let debugToken = await consumer1._debugToken();
-        let debugMsgSender = await consumer1._debugMsgSender();
+         balanceAcc1 = await provider1.getBalance({ from: account1});
+         balanceAcc2 = await provider1.getBalance({ from: account2});
+         balanceAcc3 = await provider1.getBalance({ from: account3});
+         balanceProv1 = await provider1.getBalance({ from: provAddr1});
+         balanceCon1 = await provider1.getBalance({ from: con1addr});
+         assert.equal(balanceAcc1, 0);
+         assert.equal(balanceAcc2, 0);
+         assert.equal(balanceAcc3, 20);
+         assert.equal(balanceProv1, 11900);
+         assert.equal(balanceCon1, 80);
 
-        console.log("con1addr: " + con1addr);
-
-        console.log("thisToken:" + tokenAddr + ";debugToken:" + debugToken);
-        console.log("thisOwner:" + account2 + ";debugOwner:" + debugOwner);
-        console.log("thisMsgSender:" + account3 + ";debugMsgSender:" + debugMsgSender);
-        console.log("thisProvAcc:" + provAddr1);
-        */
-
-/*
-
-        let balanceprovAddr1 = await provider1.getBalance({ from: provAddr1});
-        console.log("provAddr1 balance: " + balanceprovAddr1);
-
-        let con1owner = await consumer1.owner();
-        assert.equal(con1owner, account2);
-        t.transferFrom(account2, account3, 10, {from: account3});
-        allowance = await t.allowance(account2, account3);
-
-        console.log("allowance: " + allowance.toNumber());
-*/
-        assert.equal(balAcc3, 10);
      });
 
      it("return software", async () => {
@@ -214,25 +209,37 @@ contract('Luzon Tests', async (accounts) => {
         assert.equal(assetCost, 10);
         assert.equal(assetId, 1);
 
-       /* let balance2Acc2 = await provider1.getBalance({ from: account2});
-        console.log("account2 balance: " + balance2Acc2);
-        let balance2Acc3 = await provider1.getBalance({ from: account3});
-        console.log("account3 balance: " + balance2Acc3);
-        */
-/*
-        let tokenAddr = await provider1.luzon();
-        let t = LuzonToken.at(tokenAddr);
-*/
-        /*let allowance = await t.allowance(account2, account3);
-        console.log("allowance: " + allowance.toNumber());
 
-        await t.approve(account3, 1234, {from: account2});
-        allowance = await t.allowance(account2, account3);
 
-        console.log("allowance: " + allowance.toNumber());*/
-        await consumer1.returnAsset(provAddr1, 1, {from: account3, gas: 1000000});
-        let balAcc3 = await provider1.getBalance({ from: account3});
-        assert.equal(balAcc3, 10);
+        let balanceAcc1 = await provider1.getBalance({ from: account1});
+        let balanceAcc2 = await provider1.getBalance({ from: account2});
+        let balanceAcc3 = await provider1.getBalance({ from: account3});
+        let balanceProv1 = await provider1.getBalance({ from: provAddr1});
+        let balanceCon1 = await provider1.getBalance({ from: con1addr});
+         assert.equal(balanceAcc1, 0);
+         assert.equal(balanceAcc2, 0);
+         assert.equal(balanceAcc3, 20);
+         assert.equal(balanceProv1, 11900);
+         assert.equal(balanceCon1, 80);
+
+        let tokenAdr = await provider1.luzon();
+        let tokenInstance = await LuzonToken.at(tokenAdr);
+
+        await tokenInstance.transfer(con1addr, 10, {from: account3, gas: 1000000});
+
+        balanceAcc1 = await provider1.getBalance({ from: account1});
+        balanceAcc2 = await provider1.getBalance({ from: account2});
+        balanceAcc3 = await provider1.getBalance({ from: account3});
+        balanceProv1 = await provider1.getBalance({ from: provAddr1});
+        balanceCon1 = await provider1.getBalance({ from: con1addr});
+        assert.equal(balanceAcc1, 0);
+        assert.equal(balanceAcc2, 0);
+        assert.equal(balanceAcc3, 10);
+        assert.equal(balanceProv1, 11900);
+        assert.equal(balanceCon1, 90);        
+
+
+
     });
 
 

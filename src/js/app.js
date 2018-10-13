@@ -68,13 +68,45 @@ App = {
       return App.getConsumers();
     });      
 
+    App.getUserName();
     return App.bindEvents();
+  },
+  getUserName : function() {
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+      console.log("Current user:" + account);
+      $('.currentUser').text(account);
+    });
   },
 
   bindEvents: function() {
     $(document).on('click', '#createProviderButton', App.createProvider);
     $(document).on('click', '#createConsumerButton', App.createConsumer);
     $(document).on('click', '#checkoutButton', App.checkout);
+    $(document).on('click', '#returnButton', App.returnAsset);
+
+  },
+
+  returnAsset: function(event) {
+    event.preventDefault();
+
+    var appCost = $('#appCost').val();
+    var appConsumer = $('#appConsumer').val();
+    var appProvider = $('#appProvider').val();
+
+    App.contracts.AssetProvider.at(appProvider).then(function(instance) {
+      assetProvider = instance;
+      return assetProvider.luzon().then(function(tokenAddr){
+        return App.contracts.LuzonToken.at(tokenAddr).then(function(tokenInstance){
+          return tokenInstance.transfer(appConsumer, appCost);
+        });
+      });
+    });
+
 
   },
 
@@ -181,7 +213,9 @@ App = {
               var provName = provInfo[0];
               var provToken = provInfo[1];
               var provTokenSymbol = provInfo[2];
+              var provOwner = provInfo[3];
 
+              providerTemplate.find('.provOwnerAddress').text(provOwner);
               providerTemplate.find('.address').text(addr);
               providerTemplate.find('.panel-title').text(provName);
               providerTemplate.find('.panel-token').text(provToken);
@@ -244,13 +278,15 @@ App = {
           for (i = 0; i < result.length; i++) {
             addr = result[i];
             console.log("Adding consumer: " + addr);
-            await consumerFactoryInstance.getName(addr).then(function(conName) {
-              consumerTemplate.find('.name').text(conName);
+            await consumerFactoryInstance.getConsumerInfo(addr).then(function(conName) {
+              consumerTemplate.find('.name').text(conName[0]);
               consumerTemplate.find('.address').text(addr);
+              consumerTemplate.find('.ownerAddress').text(conName[1]);
+
               consumerTemplate.find('.btn-addUser').attr("onclick", "App.addUserOverlay('" + addr + "')");
               consumerTemplate.find('.btn-listUser').attr("onclick", "App.listUsers('" + addr + "')");
               consumerTemplate.find('.userList').attr("id", "userList-" + addr );
-              consumerTemplate.find('.btn-slConsumer').attr("onclick", "App.selectConsumer('" + conName  + "','"+ addr + "')");
+              consumerTemplate.find('.btn-slConsumer').attr("onclick", "App.selectConsumer('" + conName[0]  + "','"+ addr + "')");
               consumerList.append(consumerTemplate.html());
             });
           }
@@ -568,7 +604,8 @@ App = {
       return assetConsumerInstance.checkoutAsset(providerAddress, assetID);
       }).then(function(result) {
         alert('Checkout Successful!');
-        window.location.href = "/TestApp.html?appName=" + assetName +" &appID="+ assetID +"&appConsumer="+consumerAddress+"&appProvider=" +providerAddress;
+        var url = "/TestApp.html?appName=" + assetName +" &appID="+ assetID +"&appConsumer="+consumerAddress+"&appProvider=" +providerAddress;
+        window.open(url, "_blank");
 
       }).catch(function(err) {
         console.log(err.message);
@@ -580,6 +617,7 @@ App = {
   getBalances: function(addrProv) {
       var addrCon;
       var consumerFactoryInstance;
+      var balanceList = "";
 
       App.contracts.ConsumerFactory.deployed().then(function(instance) {
         consumerFactoryInstance = instance;
@@ -587,19 +625,16 @@ App = {
         }).then(function(result) {
 
         (async function loop2() {
-          var balanceList = "";
           for (i = 0; i < result.length; i++) {
             addrCon = result[i];
             console.log("query consumer: " + addrCon + "@provider:" + addrProv);
 
             var instance = await App.contracts.AssetProvider.at(addrProv);
             var res = await instance.getBalance({from: addrCon});
-            var name = await consumerFactoryInstance.getName(addrCon);
-
-            balanceList = balanceList + name + ": " + res.c[0];
+            var name = await consumerFactoryInstance.getConsumerInfo(addrCon);
+            balanceList = balanceList + name[0] + ": " + res.c[0];
           }
           $('#LTBalance-' + addrProv).text(balanceList);
-
         })();
         }).catch(function(err) {
           console.log(err.message);

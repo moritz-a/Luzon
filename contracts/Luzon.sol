@@ -27,10 +27,10 @@ contract ProviderFactory {
         return providerList;
     }
 
-    function getProviderInfo(address _addr) public view returns (string providerName, string tokenName, string tokenSymbol){
+    function getProviderInfo(address _addr) public view returns (string providerName, string tokenName, string tokenSymbol, address owner){
         AssetProvider p = assetStructs[_addr];
         LuzonToken t = p.luzon();
-        return (p.name(), t.name(), t.symbol());
+        return (p.name(), t.name(), t.symbol(), p.owner());
 
     }
 }
@@ -48,8 +48,6 @@ contract LuzonToken is StandardToken {
         totalSupply_ = INITIAL_SUPPLY;
         balances[msg.sender] = INITIAL_SUPPLY;
     }
-
-
 }
 
 contract AssetProvider {
@@ -128,17 +126,12 @@ contract AssetProvider {
     {
         return luzon.balanceOf(msg.sender);
     }
-    function transferTokens(address userAddr, uint256 amount) public payable
-    {
-        luzon.transfer(userAddr, amount);
-    }
     function _preValidatePurchase(address beneficiary, uint256 weiAmount)  internal pure 
     {
         require(beneficiary != address(0), "zero address");
         require(weiAmount != 0, "need more wei");
     }
-    function _getTokenAmount(uint256 weiAmount)
-    internal view returns (uint256)
+    function _getTokenAmount(uint256 weiAmount) internal view returns (uint256)
     {
         return weiAmount.mul(_rate);
     }
@@ -161,8 +154,13 @@ contract ConsumerFactory {
         return consumerList;
     }
 
-    function getName(address _addr) public view returns (string) {
+    /*function getName(address _addr) public view returns (string) {
         return names[_addr];
+    }*/
+    function getConsumerInfo(address _addr) public view returns (string name, address owner){
+        AssetConsumer c = AssetConsumer(_addr);
+        return (c.name(), c.owner());
+
     }
 }
 
@@ -214,17 +212,9 @@ contract AssetConsumer {
         AssetProvider ap = AssetProvider(assetProv);
         uint cost;
         (, cost, ) = ap.getLicenseAsset(assetID);
-        ap.transferTokens(msg.sender, cost);
-    }
-    
-    function returnAsset(address assetProv, uint assetID) public payable
-    {
-        /*require(msg.sender != owner, "The software user cannot be the same account as the software consumer");
-        require(users[msg.sender], "User must be approved by the consumer");
-        AssetProvider ap = AssetProvider(assetProv);
-        uint cost;
-        (, cost, ) = ap.getLicenseAsset(assetID);
-        ap.transferTokens(msg.sender, cost);*/
+
+        LuzonToken lt = LuzonToken(ap.luzon());
+        lt.transfer(msg.sender, cost);
     }
 
 }

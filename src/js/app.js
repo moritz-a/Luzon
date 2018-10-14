@@ -64,7 +64,14 @@ App = {
       return App.getConsumers();
     });      
 
+    $.getJSON('LuzonToken.json', function(data) {
+      // Get the necessary contract artifact file and instantiate it with truffle-contract.
+      var LuzonTokenArtifact = data;
+      App.contracts.LuzonToken = TruffleContract(LuzonTokenArtifact);
 
+      // Set the provider for our contract.
+      App.contracts.LuzonToken.setProvider(App.web3Provider);
+    });    
 
 
     App.getUserName();
@@ -92,11 +99,12 @@ App = {
   },
 
   returnAsset: function(event) {
+    console.log("return asset button");
     event.preventDefault();
 
-    var appCost = $('#appCost').val();
-    var appConsumer = $('#appConsumer').val();
-    var appProvider = $('#appProvider').val();
+    var appCost = $('.appCost').text();
+    var appConsumer = $('.appConsumer').text();
+    var appProvider = $('.appProvider').text();
 
     App.contracts.AssetProvider.at(appProvider).then(function(instance) {
       assetProvider = instance;

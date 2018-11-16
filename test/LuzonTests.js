@@ -21,13 +21,13 @@ contract('Luzon Tests', async (accounts) => {
     let token;
 
 
-  it("should find no Providers on inital deploy", async () => {
+  it("REQ1: should find no Providers on inital deploy", async () => {
     provFactoryInstance = await ProviderFactory.deployed();
      len = await provFactoryInstance.counter();
      assert.equal(len, 0, "Expected zero, but found " + len+ " Providers in Factory");
   });
 
-  it("should find one Providers after create", async () => {
+  it("REQ1: should find one Providers after create", async () => {
     //let instance = await ProviderFactory.deployed();
     await provFactoryInstance.createProvider("TestProvider", "TestSymbol").length;
     len = await provFactoryInstance.counter();
@@ -54,17 +54,17 @@ contract('Luzon Tests', async (accounts) => {
     }
 
      });
-     it("should find one Providers on second step", async () => {
+     it("REQ1: should find one Providers on second step", async () => {
         //let instance = await ProviderFactory.deployed();
         len = await provFactoryInstance.counter();
         assert.equal(len, 1, "Expected one, but found " + len+ " Providers in Factory");
      });
 
-     it("should find one Providers on second step", async () => {
+     it("REQ1: should find one Providers on second step", async () => {
         len = await provFactoryInstance.counter();
         assert.equal(len, 1, "Expected one, but found " + len+ " Providers in Factory");
      });
-     it("add/get license assets", async () => {
+     it("REQ2: add/get license assets", async () => {
         let result = await provFactoryInstance.getProviders();
         let provAddr = result[0];
         let instance = await AssetProvider.at(provAddr);
@@ -92,7 +92,7 @@ contract('Luzon Tests', async (accounts) => {
 
      });
 
-     it("test consumer factory/ownership", async () => {
+     it("REQ4: test consumer factory/ownership", async () => {
         conFactoryInstance = await ConsumerFactory.deployed();
         await conFactoryInstance.createConsumer("TestConsumer", { from: account2 });
         let consumers = await conFactoryInstance.getConsumers();
@@ -115,7 +115,7 @@ contract('Luzon Tests', async (accounts) => {
         assert.equal(con2owner, account1);
      });
 
-     it("test buy token", async () => {
+     it("REQ6: test buy token", async () => {
         let initialBalanceAcc1 = await provider1.getBalance({ from: account1});
         let initialBalanceAcc2 = await provider1.getBalance({ from: account2});
         assert.equal(initialBalanceAcc1.toNumber(), 0);
@@ -133,7 +133,7 @@ contract('Luzon Tests', async (accounts) => {
      });
 
 
-     it("add user to consumer", async () => {
+     it("REQ7: add user to consumer", async () => {
          await consumer1.addUser(account3, {from: account2});
          let users = await consumer1.getUsers();
          assert.equal (users[0], account3);
@@ -150,7 +150,7 @@ contract('Luzon Tests', async (accounts) => {
          assert.equal (users[1], account4);
      });
 
-     it("checkout software", async () => {
+     it("REQ9: checkout software", async () => {
         let result = await provider1.getLicenseAsset(1);
         var assetName = result[0];
         var assetCost = result[1];
@@ -200,7 +200,7 @@ contract('Luzon Tests', async (accounts) => {
 
      });
 
-     it("return software", async () => {
+     it("REQ10: return software", async () => {
         let result = await provider1.getLicenseAsset(1);
         var assetName = result[0];
         var assetCost = result[1];

@@ -4,11 +4,6 @@ import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
 import "openzeppelin-solidity/contracts/ownership/Heritable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-//credit https://github.com/Robin-C/CV/blob/master/src/ethereum/contract/company.sol
-
-
-//implement timelock?? TokenTimelock.sol
-// https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/TokenTimelock.sol
 
 contract ProviderFactory {
 
@@ -153,10 +148,6 @@ contract ConsumerFactory {
     function getConsumers() public view returns (address[]) {
         return consumerList;
     }
-
-    /*function getName(address _addr) public view returns (string) {
-        return names[_addr];
-    }*/
     function getConsumerInfo(address _addr) public view returns (string name, address owner){
         AssetConsumer c = AssetConsumer(_addr);
         return (c.name(), c.owner());
@@ -197,7 +188,7 @@ contract AssetConsumer {
             if(userList[i] == _user)
             {
                 userCounter--;
-                userList[i] = 0x0000000000000000000000000000000000000099;
+                delete userList[i];
                 return;
             }
         }

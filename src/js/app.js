@@ -114,6 +114,7 @@ App = {
         });
       });
     });
+    window.close();
 
 
   },
@@ -198,6 +199,7 @@ App = {
       if (error) {
         console.log(error);
       }
+      console.log("enter getAccount");
 
       var account = accounts[0];
       var addr;
@@ -215,10 +217,12 @@ App = {
         providerList.html("");
 
         (async function loop() {
+      console.log("enter getAccount:loop, result len: " + result.length);
+
           for (i = 0; i < result.length; i++) {
             addr = result[i];
 
-            console.log("Adding prov: " + addr);
+            console.log("Adding prov: " + addr + " iteration: " + i);
             await providerFactoryInstance.getProviderInfo(addr).then(function(provInfo) {
               var provName = provInfo[0];
               var provToken = provInfo[1];
@@ -241,7 +245,10 @@ App = {
 
               providerTemplate.find('#overlay').attr("id","overlay-" + addr);
               providerList.append(providerTemplate.html());
-              App.getBalances(addr);
+              return addr;
+              //await App.getBalances(addr);
+            }).then(function(addr) {
+              App.getBalances2(addr);
             });
           }
         })();

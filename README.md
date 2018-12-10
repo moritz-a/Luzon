@@ -5,6 +5,8 @@ Moritz Armingeon, [moritz.armingeon@students.fhnw.ch](mailto:moritz.armingeon@st
 
 Luzon is a TaaL (Token-as-a-License) implementation. This prototype is a floating license system as decentralised application. I built Luzon within a Master Thesis Project. The report is available upon request.
 
+Taal is the name of a volcano on the Philippine island Luzon.
+
 # Prerequisites
 * Node.js [Link](https://nodejs.org/)
 * Truffle (npm install truffle -g) [Link](https://truffleframework.com/)
